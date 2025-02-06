@@ -16,6 +16,11 @@ JAVA_FILE_NAME=$(basename $JAVA_FILE_URL)
 RED='\033[0;31m'; GREEN='\033[0;32m'; GREY='\033[0;37m'; BLUE='\034[0;37m'; NC='\033[0m'
 ORANGE='\033[0;33m'; BLUE='\033[0;34m'; WHITE='\033[0;97m'; UNLIN='\033[0;4m'
 
+if [[ "${SLURM_VERSION}x" == "x" ]]
+then
+    export SLURM_VERSION="24.05.2"    
+fi
+
 # Setup environment
 prepareEnvironment()
 {
@@ -60,7 +65,7 @@ setupSlurm()
     wget --quiet --no-check-certificate $SLURM_SCRIPT_URL
     [ $? -ne 0 ] && echo "Failed to download >>> ${SLURM_SCRIPT_NAME} <<<. Exiting..." && exit 5
 
-    sudo SLURM_VERSION=24.05.2 bash $SLURM_SCRIPT_NAME --without-interaction=true --slurm-accounting-support=false
+    sudo SLURM_VERSION=${SLURM_VERSION} bash $SLURM_SCRIPT_NAME --without-interaction=true --slurm-accounting-support=false
     [ $? -ne 0 ] && echo "Failed to setup SLURM. Exiting..." && exit 8
     rm -f $SLURM_SCRIPT_NAME
 }
