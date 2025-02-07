@@ -16,3 +16,8 @@ bash nisp-installer.sh
 export SLURM_VERSION=24.05.2
 bash nisp-installer.sh
 ```
+
+# Possible parameters:
+
+* --disable-slurm= : if true, slurm will not be installed
+* --disable-dcv= : if true, dcv will not be installed 

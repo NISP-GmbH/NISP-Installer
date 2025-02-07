@@ -15,11 +15,30 @@ JAVA_FILE_URL="https://www.ni-sp.com/wp-content/uploads/2019/10/jdk-11.0.19_linu
 JAVA_FILE_NAME=$(basename $JAVA_FILE_URL)
 RED='\033[0;31m'; GREEN='\033[0;32m'; GREY='\033[0;37m'; BLUE='\034[0;37m'; NC='\033[0m'
 ORANGE='\033[0;33m'; BLUE='\033[0;34m'; WHITE='\033[0;97m'; UNLIN='\033[0;4m'
+DISABLE_SLURM="false"
+DISABLE_DCV="false"
 
 if [[ "${SLURM_VERSION}x" == "x" ]]
 then
     export SLURM_VERSION="24.05.2"    
 fi
+
+checkParameters()
+{
+    for arg in "$@"
+    do
+        case $arg in
+            --disable-slurm=true)
+                DISABLE_SLURM="true"
+                shift
+                ;;
+            --disable-dcv=true)
+                DISABLE_DCV="true"
+                shift
+                ;;
+        esac
+    done
+}
 
 # Setup environment
 prepareEnvironment()
@@ -62,6 +81,11 @@ setupEfportal()
 # Download and install SLURM
 setupSlurm()
 {
+    if $DISABLE_SLURM
+    then
+        return
+    fi
+
     wget --quiet --no-check-certificate $SLURM_SCRIPT_URL
     [ $? -ne 0 ] && echo "Failed to download >>> ${SLURM_SCRIPT_NAME} <<<. Exiting..." && exit 5
 
@@ -73,6 +97,11 @@ setupSlurm()
 # Download and install DCV
 setupDcv()
 {
+    if $DISABLE_DCV
+    then
+        return
+    fi
+
     wget --quiet --no-check-certificate $DCV_INSTALLER_URL
     [ $? -ne 0 ] && echo "Failed to download >>> ${DCV_INSTALLER_NAME} <<<. Exiting..." && exit 6
 
@@ -96,6 +125,8 @@ finishMessage()
     echo -e "${GREEN}To access DCV Server (TCP and UDP):${NC} your_ip:${DCV_SERVER_PORT}"
     echo -e "${GREEN}SLURM is available. You can test: srun hostname, sinfo${NC}"
 }
+
+checkParameters $@
 
 # main
 main()
