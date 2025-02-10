@@ -1,6 +1,6 @@
 # NISP Installer
 
-The easiest way to setup EnginFrame Portal, Slurm and DCV Server without interation.
+The easiest way to setup EnginFrame Portal, Slurm and DCV Server without interaction.
 
 Get a popcorn, execute and watch the show ;)
 
