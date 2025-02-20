@@ -21,7 +21,8 @@ bash nisp-installer.sh
 
 # Possible parameters:
 
-* --disable-slurm= : if true, slurm will not be installed
-* --disable-dcv= : if true, dcv will not be installed 
+* --disable-slurm=true : if true, slurm will not be installed
+* --disable-dcv=true : if true, DCV will not be installed 
+* --disable-efp=true : if true, EF Portal will not be installed 
 * --enable-dcv-gpu-nvidia=true : if true, DCV with NVIDIA GPU support will be installed
 * --enable-dcv-gpu-amd=true : if true, DCV with AMD GPU support will be installed

@@ -20,7 +20,7 @@ RED='\033[0;31m'; GREEN='\033[0;32m'; GREY='\033[0;37m'; BLUE='\034[0;37m'; NC='
 ORANGE='\033[0;33m'; BLUE='\033[0;34m'; WHITE='\033[0;97m'; UNLIN='\033[0;4m'
 DISABLE_SLURM="false"
 DISABLE_DCV="false"
-
+DISABLE_EFP="false"
 
 if [[ "${SLURM_VERSION}x" == "x" ]]
 then
@@ -40,6 +40,11 @@ checkParameters()
                 DISABLE_DCV="true"
                 shift
                 ;;
+            --disable-efp=true)
+                DISABLE_EFP="true"
+                shift
+                ;;
+
             --enable-dcv-gpu-nvidia=true)
                 DCV_GPU_NVIDIA_SUPPORT="true"
                 shift
@@ -85,6 +90,10 @@ EOF
 # Download and install EF Portal
 setupEfportal()
 {
+    if $DISABLE_EFP
+    then
+        return
+    fi
     wget --quiet --no-check-certificate $EF_PORTAL_SCRIPT_URL
     [ $? -ne 0 ] && echo "Failed to download >>> ${EF_PORTAL_SCRIPT_NAME} <<<. Exiting..." && exit 1
 
