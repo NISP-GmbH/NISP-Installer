@@ -9,6 +9,9 @@ EF_PORTAL_EFADMIN_PASSWORD=$(echo "efadmin@#@$(printf '%04d' $((RANDOM % 10000))
 DCV_INSTALLER_URL="https://raw.githubusercontent.com/NISP-GmbH/DCV-Installer/refs/heads/main/DCV_Installer.sh"
 DCV_INSTALLER_NAME=$(basename $DCV_INSTALLER_URL)
 DCV_SERVER_PORT="8443"
+DCV_SERVER_CONFIG_FILE="/etc/dcv/dcv.conf"
+DCV_GPU_NVIDIA_SUPPORT="false"
+DCV_GPU_AMD_SUPPORT="false"
 SLURM_SCRIPT_URL="https://raw.githubusercontent.com/NISP-GmbH/SLURM/main/slurm_install.sh"
 SLURM_SCRIPT_NAME=$(basename $SLURM_SCRIPT_URL)
 JAVA_FILE_URL="https://www.ni-sp.com/wp-content/uploads/2019/10/jdk-11.0.19_linux-x64_bin.tar.gz"
@@ -18,9 +21,10 @@ ORANGE='\033[0;33m'; BLUE='\033[0;34m'; WHITE='\033[0;97m'; UNLIN='\033[0;4m'
 DISABLE_SLURM="false"
 DISABLE_DCV="false"
 
+
 if [[ "${SLURM_VERSION}x" == "x" ]]
 then
-    export SLURM_VERSION="24.05.2"    
+    export SLURM_VERSION="24.05.2"
 fi
 
 checkParameters()
@@ -36,8 +40,23 @@ checkParameters()
                 DISABLE_DCV="true"
                 shift
                 ;;
+            --enable-dcv-gpu-nvidia=true)
+                DCV_GPU_NVIDIA_SUPPORT="true"
+                shift
+                ;;
+            --enable-dcv-gpu-amd=true)
+                DCV_GPU_AMD_SUPPORT="true"
+                shift
+                ;;
         esac
     done
+
+    if $DCV_GPU_NVIDIA_SUPPORT && $DCV_GPU_AMD_SUPPORT
+    then
+        echo "Is not possible to support NVIDIA and AMD GPUs at the same time. Exitting."
+        exit 12
+    fi
+
 }
 
 # Setup environment
@@ -92,6 +111,8 @@ setupSlurm()
     sudo SLURM_VERSION=${SLURM_VERSION} bash $SLURM_SCRIPT_NAME --without-interaction=true --slurm-accounting-support=false
     [ $? -ne 0 ] && echo "Failed to setup SLURM. Exiting..." && exit 8
     rm -f $SLURM_SCRIPT_NAME
+
+    
 }
 
 # Download and install DCV
@@ -105,10 +126,35 @@ setupDcv()
     wget --quiet --no-check-certificate $DCV_INSTALLER_URL
     [ $? -ne 0 ] && echo "Failed to download >>> ${DCV_INSTALLER_NAME} <<<. Exiting..." && exit 6
 
-    sudo bash $DCV_INSTALLER_NAME --without-interaction --dcv_server_install=true
-    [ $? -ne 0 ] && echo "Failed to setup DCV Server. Exiting..." && exit 9
+    if $DCV_GPU_NVIDIA_SUPPORT
+    then
+        sudo bash $DCV_INSTALLER_NAME --without-interaction --dcv_server_install=true --dcv_server_gpu_nvidia=true
+        [ $? -ne 0 ] && echo "Failed to setup DCV Server. Exiting..." && exit 10
+    elif $DCV_GPU_AMD_SUPPORT
+    then
+        sudo bash $DCV_INSTALLER_NAME --without-interaction --dcv_server_install=true --dcv_server_gpu_amd=true
+        [ $? -ne 0 ] && echo "Failed to setup DCV Server. Exiting..." && exit 11
+    else
+        sudo bash $DCV_INSTALLER_NAME --without-interaction --dcv_server_install=true
+        [ $? -ne 0 ] && echo "Failed to setup DCV Server. Exiting..." && exit 9
+    fi
 
     rm -f $DCV_INSTALLER_NAME
+
+    if [ -f $DCV_SERVER_CONFIG_FILE ]
+    then
+        NEW_LINE='auth-token-verifier="http://127.0.0.1:8444"'
+
+        if grep -q '^auth-token-verifier' "$DCV_SERVER_CONFIG_FILE"
+        then
+            sed -i 's@^auth-token-verifier.*@'"$NEW_LINE"'@' "$DCV_SERVER_CONFIG_FILE"
+        else
+            if grep -q '^\[security\]' "$DCV_SERVER_CONFIG_FILE"
+            then
+                sed -i '/^\[security\]/a '"$NEW_LINE" "$DCV_SERVER_CONFIG_FILE"
+            fi
+        fi
+    fi
 }
 
 finishMessage()
