@@ -18,9 +18,9 @@ JAVA_FILE_URL="https://www.ni-sp.com/wp-content/uploads/2019/10/jdk-11.0.19_linu
 JAVA_FILE_NAME=$(basename $JAVA_FILE_URL)
 RED='\033[0;31m'; GREEN='\033[0;32m'; GREY='\033[0;37m'; BLUE='\034[0;37m'; NC='\033[0m'
 ORANGE='\033[0;33m'; BLUE='\033[0;34m'; WHITE='\033[0;97m'; UNLIN='\033[0;4m'
-DISABLE_SLURM="false"
-DISABLE_DCV="false"
-DISABLE_EFP="false"
+ENABLE_SLURM="false"
+ENABLE_DCV="false"
+ENABLE_EFP="false"
 
 if [[ "${SLURM_VERSION}x" == "x" ]]
 then
@@ -32,19 +32,36 @@ checkParameters()
     for arg in "$@"
     do
         case $arg in
-            --disable-slurm=true)
-                DISABLE_SLURM="true"
-                shift
-                ;;
-            --disable-dcv=true)
-                DISABLE_DCV="true"
-                shift
-                ;;
-            --disable-efp=true)
-                DISABLE_EFP="true"
-                shift
-                ;;
+            -h|--help|-help|help)
+                echo -e "${GREEN}Usage: nisp-installer.sh [options]${NC}"
+                echo -e "${GREEN}Options:${NC}"
+                echo -e "${GREEN}--enable-slurm=true :${NC} if true, SLURM will be installed"
+                echo -e "${GREEN}--enable-dcv=true :${NC} if true, DCV Server will be installed"
+                echo -e "${GREEN}--enable-efp=true :${NC} if true, EF Portal will be installed"
+                echo -e "${GREEN}--enable-dcv-gpu-nvidia=true :${NC} if true, DCV Server with NVIDIA GPU support will be installed"
+                echo -e "${GREEN}--enable-dcv-gpu-amd=true :${NC} if true, DCV Server with AMD GPU support will be installed"
+                echo -e "${GREEN}Note :${NC} If you do not explicit to enable some parameter, the default value is false"
+                echo -e "${GREEN}-h, --help:${NC} Display this help message"
+                exit 0
+            ;;
+        esac
+    done
 
+    for arg in "$@"
+    do
+        case $arg in
+            --enable-slurm=true)
+                ENABLE_SLURM="true"
+                shift
+                ;;
+            --enable-dcv=true)
+                ENABLE_DCV="true"
+                shift
+                ;;
+            --enable-efp=true)
+                ENABLE_EFP="true"
+                shift
+                ;;
             --enable-dcv-gpu-nvidia=true)
                 DCV_GPU_NVIDIA_SUPPORT="true"
                 shift
@@ -58,10 +75,15 @@ checkParameters()
 
     if $DCV_GPU_NVIDIA_SUPPORT && $DCV_GPU_AMD_SUPPORT
     then
-        echo "Is not possible to support NVIDIA and AMD GPUs at the same time. Exitting."
+        echo -e "${GREEN}Is not possible to support NVIDIA and AMD GPUs at the same time. Exitting.${NC}"
         exit 12
     fi
 
+    if ! ( $ENABLE_SLURM && $ENABLE_DCV && $ENABLE_EFP )
+    then
+        echo -e "${GREEN}Nothing will be installed. You need to enable some service. Please execute bash nisp-installer.sh -h${NC}"
+        exit 15
+    fi
 }
 
 # Setup environment
@@ -90,7 +112,7 @@ EOF
 # Download and install EF Portal
 setupEfportal()
 {
-    if $DISABLE_EFP
+    if ! $ENABLE_EFP
     then
         return
     fi
@@ -109,7 +131,7 @@ setupEfportal()
 # Download and install SLURM
 setupSlurm()
 {
-    if $DISABLE_SLURM
+    if ! $ENABLE_SLURM
     then
         return
     fi
@@ -127,7 +149,7 @@ setupSlurm()
 # Download and install DCV
 setupDcv()
 {
-    if $DISABLE_DCV
+    if ! $ENABLE_DCV
     then
         return
     fi
@@ -174,19 +196,19 @@ finishMessage()
     echo
     echo
     echo -e "${GREEN}Finished the setup with SUCCESS!${NC}"
-    if ! $DISABLE_EFP
+    if $ENABLE_EFP
     then
         echo -e "${GREEN}To access EF portal: https://your_ip:${EF_PORTAL_PORT}${NC}"
         echo -e "${GREEN}User:${NC} ${EF_PORTAL_EFADMIN_USER}"
         echo -e "${GREEN}Password:${NC} ${EF_PORTAL_EFADMIN_PASSWORD}"
     fi
 
-    if ! $DISABLE_DCV
+    if $ENABLE_DCV
     then
         echo -e "${GREEN}To access DCV Server (TCP and UDP):${NC} your_ip:${DCV_SERVER_PORT}"
     fi
 
-    if ! $DISABLE_SLURM
+    if ! $ENABLE_SLURM
     then
         echo -e "${GREEN}SLURM is available. You can test: srun hostname, sinfo${NC}"
     fi
