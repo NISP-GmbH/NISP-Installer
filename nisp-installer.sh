@@ -186,6 +186,9 @@ setupDcv()
             fi
         fi
     fi
+
+    sudo systemctl enable --now dcvsimpleextauth.service
+    sudo systemctl restart dcvsimpleextauth.service
 }
 
 finishMessage()
