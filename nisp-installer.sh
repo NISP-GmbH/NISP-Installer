@@ -79,7 +79,7 @@ checkParameters()
         exit 12
     fi
 
-    if ! ( $ENABLE_SLURM && $ENABLE_DCV && $ENABLE_EFP )
+    if ! $ENABLE_SLURM && ! $ENABLE_DCV && ! $ENABLE_EFP
     then
         echo -e "${GREEN}Nothing will be installed. You need to enable some service. Please execute bash nisp-installer.sh -h${NC}"
         exit 15
