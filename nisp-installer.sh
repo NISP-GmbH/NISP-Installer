@@ -174,11 +174,22 @@ finishMessage()
     echo
     echo
     echo -e "${GREEN}Finished the setup with SUCCESS!${NC}"
-    echo -e "${GREEN}To access EF portal: https://your_ip:${EF_PORTAL_PORT}${NC}"
-    echo -e "${GREEN}User:${NC} ${EF_PORTAL_EFADMIN_USER}"
-    echo -e "${GREEN}Password:${NC} ${EF_PORTAL_EFADMIN_PASSWORD}"
-    echo -e "${GREEN}To access DCV Server (TCP and UDP):${NC} your_ip:${DCV_SERVER_PORT}"
-    echo -e "${GREEN}SLURM is available. You can test: srun hostname, sinfo${NC}"
+    if ! $DISABLE_EFP
+    then
+        echo -e "${GREEN}To access EF portal: https://your_ip:${EF_PORTAL_PORT}${NC}"
+        echo -e "${GREEN}User:${NC} ${EF_PORTAL_EFADMIN_USER}"
+        echo -e "${GREEN}Password:${NC} ${EF_PORTAL_EFADMIN_PASSWORD}"
+    fi
+
+    if ! $DISABLE_DCV
+    then
+        echo -e "${GREEN}To access DCV Server (TCP and UDP):${NC} your_ip:${DCV_SERVER_PORT}"
+    fi
+
+    if ! $DISABLE_SLURM
+    then
+        echo -e "${GREEN}SLURM is available. You can test: srun hostname, sinfo${NC}"
+    fi
 }
 
 checkParameters $@
