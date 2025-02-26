@@ -208,7 +208,7 @@ finishMessage()
         echo -e "${GREEN}To access DCV Server (TCP and UDP):${NC} your_ip:${DCV_SERVER_PORT}"
     fi
 
-    if ! $ENABLE_SLURM
+    if $ENABLE_SLURM
     then
         echo -e "${GREEN}SLURM is available. You can test: srun hostname, sinfo${NC}"
     fi
