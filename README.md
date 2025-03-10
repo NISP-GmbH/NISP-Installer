@@ -31,6 +31,16 @@ export SLURM_VERSION=24.05.2
 bash nisp-installer.sh
 ```
 
+# How to customize EF Portal
+
+You can customize the .jar and the config file that will be used in EF Portal setup. You can export just one or more. Do not forget to put the files in the same directory of the script.
+
+```bash
+export EF_PORTAL_JAR_NAME=efportal-2024.1-r1874.jar
+export EF_PORTAL_CONFIG_NAME=efinstall.config
+bash nisp-installer.sh
+```
+
 # Possible parameters:
 
 * --enable-slurm=true : if true, SLURM will be installed
