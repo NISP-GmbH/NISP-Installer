@@ -216,7 +216,7 @@ finishMessage()
         echo -e "${GREEN}SLURM is available. You can test: srun hostname, sinfo${NC}"
     fi
 
-    echo "${GREEN}Note: If any service get connectiong refused, you need to disable firewalld or allow some ports:"
+    echo -e "${GREEN}Note: If any service get connectiong refused, you need to disable firewalld or allow some ports:${NC}"
     echo "- DCV: 8443 TCP and UDP"
     echo "- EF Portal: 8448 TCP"
 }
