@@ -21,6 +21,7 @@ ORANGE='\033[0;33m'; BLUE='\033[0;34m'; WHITE='\033[0;97m'; UNLIN='\033[0;4m'
 ENABLE_SLURM="false"
 ENABLE_DCV="false"
 ENABLE_EFP="false"
+NISP_INSTALLER_VERBOSE="true"
 
 if [[ "${SLURM_VERSION}x" == "x" ]]
 then
@@ -70,18 +71,22 @@ checkParameters()
                 DCV_GPU_AMD_SUPPORT="true"
                 shift
                 ;;
+            --silent)
+                NISP_INSTALLER_VERBOSE="false"
+                shift
+                ;;
         esac
     done
 
     if $DCV_GPU_NVIDIA_SUPPORT && $DCV_GPU_AMD_SUPPORT
     then
-        echo -e "${GREEN}Is not possible to support NVIDIA and AMD GPUs at the same time. Exitting.${NC}"
+        $NISP_INSTALLER_VERBOSE && echo -e "${GREEN}Is not possible to support NVIDIA and AMD GPUs at the same time. Exitting.${NC}"
         exit 12
     fi
 
     if ! $ENABLE_SLURM && ! $ENABLE_DCV && ! $ENABLE_EFP
     then
-        echo -e "${GREEN}Nothing will be installed. You need to enable some service. Please execute bash nisp-installer.sh -h${NC}"
+        $NISP_INSTALLER_VERBOSE && echo -e "${GREEN}Nothing will be installed. You need to enable some service. Please execute bash nisp-installer.sh -h${NC}"
         exit 15
     fi
 }
@@ -124,7 +129,7 @@ setupEfportal()
 
     sudo firewall-cmd --zone=public --add-port=${EF_PORTAL_PORT}/tcp --permanent
 
-    echo -e "${EF_PORTAL_EFADMIN_PASSWORD}\n${EF_PORTAL_EFADMIN_PASSWORD}" | sudo passwd ${EF_PORTAL_EFADMIN_USER}
+    $NISP_INSTALLER_VERBOSE && echo -e "${EF_PORTAL_EFADMIN_PASSWORD}\n${EF_PORTAL_EFADMIN_PASSWORD}" | sudo passwd ${EF_PORTAL_EFADMIN_USER}
     rm -f ${EF_PORTAL_SCRIPT_NAME}
 }
 
@@ -142,8 +147,6 @@ setupSlurm()
     sudo SLURM_VERSION=${SLURM_VERSION} bash $SLURM_SCRIPT_NAME --without-interaction=true --slurm-accounting-support=false
     [ $? -ne 0 ] && echo "Failed to setup SLURM. Exiting..." && exit 8
     rm -f $SLURM_SCRIPT_NAME
-
-    
 }
 
 # Download and install DCV
@@ -193,6 +196,8 @@ setupDcv()
 
 finishMessage()
 {
+    ! $NISP_INSTALLER_VERBOSE && return
+
     echo
     echo
     echo
@@ -237,5 +242,5 @@ main()
 main
 
 # unknown error
-echo "Unknown error. Exiting..."
+$NISP_INSTALLER_VERBOSE && echo "Unknown error. Exiting..."
 exit 255
