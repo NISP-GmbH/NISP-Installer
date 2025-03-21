@@ -124,7 +124,6 @@ setupEfportal()
     wget --quiet --no-check-certificate $EF_PORTAL_SCRIPT_URL
     [ $? -ne 0 ] && echo "Failed to download >>> ${EF_PORTAL_SCRIPT_NAME} <<<. Exiting..." && exit 1
 
-    if 
     sudo EF_PORTAL_CONFIG_NAME=$EF_PORTAL_CONFIG_NAME EF_PORTAL_JAR_NAME=$EF_PORTAL_JAR_NAME bash ${EF_PORTAL_SCRIPT_NAME} --slurm_support=true --license_file=./license.ef --https_port=${EF_PORTAL_PORT}
     [ $? -ne 0 ] && echo "Failed to setup EF Portal. Exiting..." && exit 7
 
