@@ -94,6 +94,7 @@ checkParameters()
 # Setup environment
 prepareEnvironment()
 {
+	echo "Installing some bash aliases..."
     cat <<EOF >> ~/.bashrc 
 alias p=pushd
 alias l="ls -ltr"
@@ -105,6 +106,7 @@ alias m=less
 EOF
     source ~/.bashrc
 
+	echo "Installing some important packages..."
     if cat /etc/os-release | egrep -iq "(ubuntu|debian)"
     then
         sudo apt update -y
@@ -121,15 +123,21 @@ setupEfportal()
     then
         return
     fi
+
+	echo "Downloading EF Portal installer..."
     wget --quiet --no-check-certificate $EF_PORTAL_SCRIPT_URL
     [ $? -ne 0 ] && echo "Failed to download >>> ${EF_PORTAL_SCRIPT_NAME} <<<. Exiting..." && exit 1
 
+	echo "Executing EF Portal installer..."
     sudo EF_PORTAL_CONFIG_NAME=$EF_PORTAL_CONFIG_NAME EF_PORTAL_JAR_NAME=$EF_PORTAL_JAR_NAME bash ${EF_PORTAL_SCRIPT_NAME} --slurm_support=true --license_file=./license.ef --https_port=${EF_PORTAL_PORT}
     [ $? -ne 0 ] && echo "Failed to setup EF Portal. Exiting..." && exit 7
 
+	echo "Configuring firewall..."
     sudo firewall-cmd --zone=public --add-port=${EF_PORTAL_PORT}/tcp --permanent
 
     $NISP_INSTALLER_VERBOSE && echo -e "${EF_PORTAL_EFADMIN_PASSWORD}\n${EF_PORTAL_EFADMIN_PASSWORD}" | sudo passwd ${EF_PORTAL_EFADMIN_USER}
+
+	echo "Removing temp installation files..."
     rm -f ${EF_PORTAL_SCRIPT_NAME}
 }
 
@@ -141,11 +149,15 @@ setupSlurm()
         return
     fi
 
+	echo "Downloading Slurm installer..."
     wget --quiet --no-check-certificate $SLURM_SCRIPT_URL
     [ $? -ne 0 ] && echo "Failed to download >>> ${SLURM_SCRIPT_NAME} <<<. Exiting..." && exit 5
 
+	echo "Installing SLURM..."
     sudo SLURM_VERSION=${SLURM_VERSION} bash $SLURM_SCRIPT_NAME --without-interaction=true --slurm-accounting-support=false
     [ $? -ne 0 ] && echo "Failed to setup SLURM. Exiting..." && exit 8
+
+	echo "Removing temp installation files..."
     rm -f $SLURM_SCRIPT_NAME
 }
 
@@ -157,9 +169,11 @@ setupDcv()
         return
     fi
 
+	echo "Downloading DCV installer..."
     wget --quiet --no-check-certificate $DCV_INSTALLER_URL
     [ $? -ne 0 ] && echo "Failed to download >>> ${DCV_INSTALLER_NAME} <<<. Exiting..." && exit 6
 
+	echo "Executing the DCV installer..."
     if $DCV_GPU_NVIDIA_SUPPORT
     then
         sudo bash $DCV_INSTALLER_NAME --without-interaction --dcv_server_install=true --dcv_server_gpu_nvidia=true
@@ -173,8 +187,10 @@ setupDcv()
         [ $? -ne 0 ] && echo "Failed to setup DCV Server. Exiting..." && exit 9
     fi
 
+	echo "Removing temp installation files..."
     rm -f $DCV_INSTALLER_NAME
 
+	echo "Configuring DCV..."
     if [ -f $DCV_SERVER_CONFIG_FILE ]
     then
         NEW_LINE='auth-token-verifier="http://127.0.0.1:8444"'
@@ -190,6 +206,7 @@ setupDcv()
         fi
     fi
 
+	echo "Enabling and starting systemd services..."
     sudo systemctl enable --now dcvsimpleextauth.service
     sudo systemctl restart dcvsimpleextauth.service
 }
@@ -242,5 +259,5 @@ main()
 main
 
 # unknown error
-$NISP_INSTALLER_VERBOSE && echo "Unknown error. Exiting..."
+$NISP_INSTALLER_VERBOSE && echo "Unknown error. Exitting..."
 exit 255
