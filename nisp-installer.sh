@@ -107,7 +107,7 @@ EOF
     source ~/.bashrc
 
 	echo "Installing some important packages..."
-    if cat /etc/os-release | egrep -iq "(ubuntu|debian)"
+    if cat /etc/os-release | grep -Eiq "(ubuntu|debian)"
     then
         sudo apt update -y
         sudo apt install unzip tar -y
