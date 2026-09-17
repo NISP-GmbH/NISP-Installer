@@ -105,7 +105,7 @@ alias m=less
 EOF
     source ~/.bashrc
 
-    if cat /etc/os-release | egrep -iq "(ubuntu|debian)"
+    if cat /etc/os-release | grep -Eiq "(ubuntu|debian)"
     then
         sudo apt update -y
         sudo apt install unzip tar -y
